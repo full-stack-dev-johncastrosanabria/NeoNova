@@ -27,10 +27,15 @@ function LoginPageContent() {
   const loginMutation = useLogin({
     onSuccess: (data) => {
       console.log('Login successful, token saved:', data.token.substring(0, 20) + '...')
-      // Small delay to ensure token is saved
-      setTimeout(() => {
+      console.log('Navigating to /chat...')
+      // Use window.location as fallback if navigate doesn't work
+      try {
         navigate({ to: '/chat' })
-      }, 100)
+        console.log('Navigate called successfully')
+      } catch (error) {
+        console.error('Navigate error:', error)
+        window.location.href = '/chat'
+      }
     },
     onError: (err) => {
       console.error('Login error:', err)
@@ -41,10 +46,15 @@ function LoginPageContent() {
   const registerMutation = useRegister({
     onSuccess: (data) => {
       console.log('Registration successful, token saved:', data.token.substring(0, 20) + '...')
-      // Small delay to ensure token is saved
-      setTimeout(() => {
+      console.log('Navigating to /chat...')
+      // Use window.location as fallback if navigate doesn't work
+      try {
         navigate({ to: '/chat' })
-      }, 100)
+        console.log('Navigate called successfully')
+      } catch (error) {
+        console.error('Navigate error:', error)
+        window.location.href = '/chat'
+      }
     },
     onError: (err) => {
       console.error('Registration error:', err)
@@ -179,6 +189,22 @@ function LoginPageContent() {
               >
                 {isLogin ? 'Sign in' : 'Create account'}
               </Button>
+
+              {/* Debug: Manual navigation button */}
+              {import.meta.env.DEV && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => {
+                    console.log('Manual navigation to /chat')
+                    window.location.href = '/chat'
+                  }}
+                >
+                  [Debug] Go to Chat
+                </Button>
+              )}
             </form>
 
             {/* Toggle Login/Register */}
