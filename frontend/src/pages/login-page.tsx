@@ -25,19 +25,29 @@ function LoginPageContent() {
   const navigate = useNavigate()
   
   const loginMutation = useLogin({
-    onSuccess: () => {
-      navigate({ to: '/chat' })
+    onSuccess: (data) => {
+      console.log('Login successful, token saved:', data.token.substring(0, 20) + '...')
+      // Small delay to ensure token is saved
+      setTimeout(() => {
+        navigate({ to: '/chat' })
+      }, 100)
     },
     onError: (err) => {
+      console.error('Login error:', err)
       setError(err.message || 'Login failed')
     },
   })
   
   const registerMutation = useRegister({
-    onSuccess: () => {
-      navigate({ to: '/chat' })
+    onSuccess: (data) => {
+      console.log('Registration successful, token saved:', data.token.substring(0, 20) + '...')
+      // Small delay to ensure token is saved
+      setTimeout(() => {
+        navigate({ to: '/chat' })
+      }, 100)
     },
     onError: (err) => {
+      console.error('Registration error:', err)
       setError(err.message || 'Registration failed')
     },
   })
