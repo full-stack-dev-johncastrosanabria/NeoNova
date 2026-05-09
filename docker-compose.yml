@@ -37,7 +37,7 @@ services:
       AZURE_OPENAI_ENDPOINT: ${AZURE_OPENAI_ENDPOINT:-}
       AZURE_OPENAI_DEPLOYMENT_NAME: ${AZURE_OPENAI_DEPLOYMENT_NAME:-}
       LLM_PROVIDER: ${LLM_PROVIDER:-openai}
-      CORS_ALLOW_ORIGINS: http://localhost:3000,http://frontend:3000
+      CORS_ALLOW_ORIGINS: ${CORS_ALLOW_ORIGINS:-http://localhost:3000,http://localhost:5173,http://localhost:5174,http://frontend:3000}
       PYTHONPATH: /app/src
     ports:
       - "8000:8000"
