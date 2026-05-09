@@ -1,6 +1,7 @@
 """Pydantic schemas for memory endpoints."""
 
 from datetime import datetime
+from typing import Optional
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -23,6 +24,8 @@ class MemoryResponse(BaseModel):
     content: str
     importance: int
     is_active: bool
+    source_message_id: Optional[UUID] = None
     created_at: datetime
+    updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)

@@ -1,2 +1,6 @@
 {
+    "sonarlint.connectedMode.project": {
+        "connectionId": "full-stack-dev-johncastrosanabria",
+        "projectKey": "full-stack-dev-johncastrosanabria_NeoNova"
+    }
 }

@@ -10,7 +10,7 @@ class RegisterRequest(BaseModel):
     """Request schema for user registration."""
 
     email: EmailStr
-    password: str = Field(min_length=8)
+    password: str = Field(min_length=8, max_length=72)
     display_name: str = Field(min_length=1)
 
 

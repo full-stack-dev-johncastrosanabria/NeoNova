@@ -1,14 +1,12 @@
 """Authentication service for password hashing and JWT management."""
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
+import bcrypt
 from jose import ExpiredSignatureError, JWTError, jwt
-from passlib.context import CryptContext
 
 from application.config import get_settings
-
-_pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 class AuthService:
@@ -23,7 +21,15 @@ class AuthService:
         Returns:
             The bcrypt-hashed password string.
         """
-        return _pwd_context.hash(password)
+        # Truncate password to 72 bytes for bcrypt compatibility
+        password_bytes = password.encode('utf-8')
+        if len(password_bytes) > 72:
+            password_bytes = password_bytes[:72]
+        
+        # Hash with bcrypt
+        salt = bcrypt.gensalt(rounds=12)
+        hashed = bcrypt.hashpw(password_bytes, salt)
+        return hashed.decode('utf-8')
 
     def verify_password(self, plain_password: str, hashed_password: str) -> bool:
         """Verify a plain-text password against a bcrypt hash.
@@ -35,7 +41,12 @@ class AuthService:
         Returns:
             True if the password matches, False otherwise.
         """
-        return _pwd_context.verify(plain_password, hashed_password)
+        # Truncate password to 72 bytes for bcrypt compatibility
+        password_bytes = plain_password.encode('utf-8')
+        if len(password_bytes) > 72:
+            password_bytes = password_bytes[:72]
+        
+        return bcrypt.checkpw(password_bytes, hashed_password.encode('utf-8'))
 
     def create_access_token(self, user_id: UUID) -> str:
         """Create a signed JWT access token for the given user.
@@ -49,9 +60,13 @@ class AuthService:
         settings = get_settings()
         payload = {
             "sub": str(user_id),
-            "exp": datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
+            "exp": datetime.now(timezone.utc) + timedelta(
+                minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
+            ),
         }
-        return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+        return jwt.encode(
+            payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM
+        )
 
     def decode_token(self, token: str) -> UUID:
         """Decode a JWT access token and return the user UUID.
@@ -67,9 +82,11 @@ class AuthService:
         """
         settings = get_settings()
         try:
-            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+            payload = jwt.decode(
+                token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+            )
             return UUID(payload["sub"])
-        except ExpiredSignatureError:
-            raise ValueError("Token expired")
-        except JWTError:
-            raise ValueError("Invalid token")
+        except ExpiredSignatureError as exc:
+            raise ValueError("Token expired") from exc
+        except JWTError as exc:
+            raise ValueError("Invalid token") from exc

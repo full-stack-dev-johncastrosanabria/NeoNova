@@ -2,8 +2,8 @@
 
 import uuid
 
-from sqlalchemy import DateTime, ForeignKey, String, Text
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy import DateTime, ForeignKey, String, Text, JSON
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
@@ -36,7 +36,7 @@ class MessageModel(Base):
         nullable=False,
     )
     metadata_json: Mapped[object] = mapped_column(
-        JSONB,
+        JSON,
         nullable=True,
     )
     created_at: Mapped[object] = mapped_column(

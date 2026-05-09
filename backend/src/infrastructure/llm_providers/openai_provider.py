@@ -2,6 +2,7 @@
 
 from typing import List, Optional
 
+import httpx
 import openai
 
 from application.interfaces.llm_provider import ILLMProvider, LLMMessage, LLMResponse
@@ -24,6 +25,23 @@ class OpenAIProvider(ILLMProvider):
         """
         self.api_key = api_key
         self.model = model
+        # Create a single async HTTP client to reuse
+        self._http_client = httpx.AsyncClient()
+        self._client = None
+
+    async def _get_client(self) -> openai.AsyncOpenAI:
+        """Get or create the OpenAI async client.
+
+        Returns:
+            The OpenAI AsyncOpenAI client instance.
+        """
+        if self._client is None:
+            # Create client with explicit http_client to avoid httpx issues
+            self._client = openai.AsyncOpenAI(
+                api_key=self.api_key,
+                http_client=self._http_client,
+            )
+        return self._client
 
     async def generate_completion(
         self,
@@ -46,7 +64,7 @@ class OpenAIProvider(ILLMProvider):
             ServiceUnavailableError: When the API is unreachable or returns
                 an unexpected error.
         """
-        client = openai.AsyncOpenAI(api_key=self.api_key)
+        client = await self._get_client()
         openai_messages = [
             {"role": msg.role, "content": msg.content} for msg in messages
         ]
@@ -92,7 +110,7 @@ class OpenAIProvider(ILLMProvider):
             ServiceUnavailableError: When the API is unreachable or returns
                 an unexpected error.
         """
-        client = openai.AsyncOpenAI(api_key=self.api_key)
+        client = await self._get_client()
 
         try:
             response = await client.embeddings.create(

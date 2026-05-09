@@ -46,7 +46,9 @@ async def list_memories(
             content=memory.content,
             importance=memory.importance.value,
             is_active=memory.is_active,
+            source_message_id=memory.source_message_id,
             created_at=memory.created_at,
+            updated_at=memory.updated_at,
         )
         for memory in memories
     ]
@@ -91,7 +93,9 @@ async def create_memory(
         content=memory.content,
         importance=memory.importance.value,
         is_active=memory.is_active,
+        source_message_id=memory.source_message_id,
         created_at=memory.created_at,
+        updated_at=memory.updated_at,
     )
 
 
@@ -131,5 +135,7 @@ async def deactivate_memory(
         content=memory.content,
         importance=memory.importance.value,
         is_active=memory.is_active,
+        source_message_id=memory.source_message_id,
         created_at=memory.created_at,
+        updated_at=memory.updated_at,
     )
