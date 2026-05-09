@@ -160,7 +160,7 @@ export function useSendMessage(
 
   return useMutation({
     mutationFn: (data) => messagesAPI.send(conversationId, data),
-    onMutate: async (newMessage) => {
+    onMutate: async (newMessage): Promise<{ previousMessages: Message[] | undefined }> => {
       // Cancel outgoing refetches
       await queryClient.cancelQueries({
         queryKey: queryKeys.messages(conversationId),
@@ -187,7 +187,7 @@ export function useSendMessage(
 
       return { previousMessages }
     },
-    onError: (err, newMessage, context) => {
+    onError: (_err, _newMessage, context) => {
       // Rollback on error
       if (context?.previousMessages) {
         queryClient.setQueryData(

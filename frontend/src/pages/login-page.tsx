@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { Sparkles, Mail, Lock, AlertCircle } from 'lucide-react'
-import { cn } from '@/lib/utils'
 
 export function LoginPage() {
   return (
