@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
-import { Sparkles, Mail, Lock, AlertCircle } from 'lucide-react'
+import { Sparkles, Mail, Lock, AlertCircle, User } from 'lucide-react'
 
 export function LoginPage() {
   return (
@@ -19,6 +19,7 @@ function LoginPageContent() {
   const [isLogin, setIsLogin] = useState(true)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [displayName, setDisplayName] = useState('')
   const [error, setError] = useState('')
   
   const navigate = useNavigate()
@@ -50,10 +51,15 @@ function LoginPageContent() {
       return
     }
 
+    if (!isLogin && !displayName) {
+      setError('Please enter your name')
+      return
+    }
+
     if (isLogin) {
       loginMutation.mutate({ email, password })
     } else {
-      registerMutation.mutate({ email, password })
+      registerMutation.mutate({ email, password, display_name: displayName })
     }
   }
 
@@ -83,6 +89,28 @@ function LoginPageContent() {
           
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Display Name Input (Register only) */}
+              {!isLogin && (
+                <div className="space-y-2">
+                  <label htmlFor="displayName" className="text-sm font-medium text-gray-700">
+                    Name
+                  </label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <Input
+                      id="displayName"
+                      type="text"
+                      placeholder="Your name"
+                      value={displayName}
+                      onChange={(e) => setDisplayName(e.target.value)}
+                      className="pl-10"
+                      disabled={isLoading}
+                      autoComplete="name"
+                    />
+                  </div>
+                </div>
+              )}
+
               {/* Email Input */}
               <div className="space-y-2">
                 <label htmlFor="email" className="text-sm font-medium text-gray-700">
