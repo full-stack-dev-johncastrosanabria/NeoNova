@@ -27,10 +27,9 @@ function LoginPageContent() {
   const loginMutation = useLogin({
     onSuccess: (data) => {
       console.log('Login successful, token saved:', data.token.substring(0, 20) + '...')
-      console.log('Navigating to /chat...')
-      // Force navigation using router.navigate
-      router.navigate({ to: '/chat', replace: true })
-      console.log('Navigate called successfully')
+      console.log('Using window.location to navigate...')
+      // Use window.location.href for reliable navigation
+      window.location.href = '/chat'
     },
     onError: (err) => {
       console.error('Login error:', err)
@@ -41,10 +40,9 @@ function LoginPageContent() {
   const registerMutation = useRegister({
     onSuccess: (data) => {
       console.log('Registration successful, token saved:', data.token.substring(0, 20) + '...')
-      console.log('Navigating to /chat...')
-      // Force navigation using router.navigate
-      router.navigate({ to: '/chat', replace: true })
-      console.log('Navigate called successfully')
+      console.log('Using window.location to navigate...')
+      // Use window.location.href for reliable navigation
+      window.location.href = '/chat'
     },
     onError: (err) => {
       console.error('Registration error:', err)
