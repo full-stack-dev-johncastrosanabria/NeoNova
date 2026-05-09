@@ -1,5 +1,5 @@
 import { useState, Suspense } from 'react'
-import { useNavigate } from '@tanstack/react-router'
+import { useRouter } from '@tanstack/react-router'
 import { useLogin, useRegister } from '@/hooks/use-api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -22,20 +22,15 @@ function LoginPageContent() {
   const [displayName, setDisplayName] = useState('')
   const [error, setError] = useState('')
   
-  const navigate = useNavigate()
+  const router = useRouter()
   
   const loginMutation = useLogin({
     onSuccess: (data) => {
       console.log('Login successful, token saved:', data.token.substring(0, 20) + '...')
       console.log('Navigating to /chat...')
-      // Use window.location as fallback if navigate doesn't work
-      try {
-        navigate({ to: '/chat' })
-        console.log('Navigate called successfully')
-      } catch (error) {
-        console.error('Navigate error:', error)
-        window.location.href = '/chat'
-      }
+      // Force navigation using router.navigate
+      router.navigate({ to: '/chat', replace: true })
+      console.log('Navigate called successfully')
     },
     onError: (err) => {
       console.error('Login error:', err)
@@ -47,14 +42,9 @@ function LoginPageContent() {
     onSuccess: (data) => {
       console.log('Registration successful, token saved:', data.token.substring(0, 20) + '...')
       console.log('Navigating to /chat...')
-      // Use window.location as fallback if navigate doesn't work
-      try {
-        navigate({ to: '/chat' })
-        console.log('Navigate called successfully')
-      } catch (error) {
-        console.error('Navigate error:', error)
-        window.location.href = '/chat'
-      }
+      // Force navigation using router.navigate
+      router.navigate({ to: '/chat', replace: true })
+      console.log('Navigate called successfully')
     },
     onError: (err) => {
       console.error('Registration error:', err)
