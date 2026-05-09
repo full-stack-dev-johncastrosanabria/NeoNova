@@ -1,5 +1,4 @@
 import { useState, Suspense } from 'react'
-import { useRouter } from '@tanstack/react-router'
 import { useLogin, useRegister } from '@/hooks/use-api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -22,14 +21,14 @@ function LoginPageContent() {
   const [displayName, setDisplayName] = useState('')
   const [error, setError] = useState('')
   
-  const router = useRouter()
-  
   const loginMutation = useLogin({
     onSuccess: (data) => {
       console.log('Login successful, token saved:', data.token.substring(0, 20) + '...')
-      console.log('Using window.location to navigate...')
-      // Use window.location.href for reliable navigation
-      window.location.href = '/chat'
+      console.log('Token in localStorage:', localStorage.getItem('token')?.substring(0, 20) + '...')
+      console.log('Reloading page to navigate to chat...')
+      // Force a full page reload to /chat
+      // This ensures the router re-evaluates the auth state
+      window.location.replace('/chat')
     },
     onError: (err) => {
       console.error('Login error:', err)
@@ -40,9 +39,11 @@ function LoginPageContent() {
   const registerMutation = useRegister({
     onSuccess: (data) => {
       console.log('Registration successful, token saved:', data.token.substring(0, 20) + '...')
-      console.log('Using window.location to navigate...')
-      // Use window.location.href for reliable navigation
-      window.location.href = '/chat'
+      console.log('Token in localStorage:', localStorage.getItem('token')?.substring(0, 20) + '...')
+      console.log('Reloading page to navigate to chat...')
+      // Force a full page reload to /chat
+      // This ensures the router re-evaluates the auth state
+      window.location.replace('/chat')
     },
     onError: (err) => {
       console.error('Registration error:', err)
@@ -187,7 +188,7 @@ function LoginPageContent() {
                   className="w-full"
                   onClick={() => {
                     console.log('Manual navigation to /chat')
-                    window.location.href = '/chat'
+                    window.location.replace('/chat')
                   }}
                 >
                   [Debug] Go to Chat

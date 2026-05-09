@@ -51,10 +51,11 @@ export function useRegister(
 ) {
   return useMutation({
     mutationFn: authAPI.register,
-    onSuccess: (data) => {
+    onSuccess: (data, variables, context) => {
       setAuthToken(data.token)
+      // Call the custom onSuccess if provided
+      options?.onSuccess?.(data, variables, context)
     },
-    ...options,
   })
 }
 
@@ -63,10 +64,11 @@ export function useLogin(
 ) {
   return useMutation({
     mutationFn: authAPI.login,
-    onSuccess: (data) => {
+    onSuccess: (data, variables, context) => {
       setAuthToken(data.token)
+      // Call the custom onSuccess if provided
+      options?.onSuccess?.(data, variables, context)
     },
-    ...options,
   })
 }
 
@@ -154,7 +156,7 @@ export function useMessages(
 
 export function useSendMessage(
   conversationId: string,
-  options?: UseMutationOptions<Message, Error, SendMessageRequest>
+  options?: UseMutationOptions<Message[], Error, SendMessageRequest>
 ) {
   const queryClient = useQueryClient()
 
@@ -196,13 +198,16 @@ export function useSendMessage(
         )
       }
     },
-    onSuccess: (assistantMessage) => {
-      // Replace optimistic message with real one
+    onSuccess: (newMessages) => {
+      // Backend returns [userMessage, assistantMessage]
+      // Replace optimistic message with real messages
       queryClient.setQueryData<Message[]>(
         queryKeys.messages(conversationId),
         (old) => {
+          // Remove temporary optimistic messages
           const filtered = old?.filter((msg) => !msg.id.startsWith('temp-')) || []
-          return [...filtered, assistantMessage]
+          // Add the real messages from the backend
+          return [...filtered, ...newMessages]
         }
       )
     },
