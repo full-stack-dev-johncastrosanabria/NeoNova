@@ -1,9 +1,13 @@
 import { useState, Suspense } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useLogin, useRegister } from '@/hooks/use-api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { LanguageSelector } from '@/components/ui/language-selector'
+import { AnimatedBackground } from '@/components/ui/animated-background'
 import { Sparkles, Mail, Lock, AlertCircle, User } from 'lucide-react'
 
 export function LoginPage() {
@@ -20,6 +24,8 @@ function LoginPageContent() {
   const [password, setPassword] = useState('')
   const [displayName, setDisplayName] = useState('')
   const [error, setError] = useState('')
+  
+  const { t } = useTranslation()
   
   const loginMutation = useLogin({
     onSuccess: (data) => {
@@ -56,12 +62,12 @@ function LoginPageContent() {
     setError('')
     
     if (!email || !password) {
-      setError('Please fill in all fields')
+      setError(t('auth.fillAllFields'))
       return
     }
 
     if (!isLogin && !displayName) {
-      setError('Please enter your name')
+      setError(t('auth.enterName'))
       return
     }
 
@@ -75,44 +81,55 @@ function LoginPageContent() {
   const isLoading = loginMutation.isPending || registerMutation.isPending
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md animate-fade-in">
-        {/* Logo/Brand */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-600 to-secondary-600 mb-4 shadow-lg">
-            <Sparkles className="w-8 h-8 text-white" />
-          </div>
-          <h1 className="text-3xl font-bold text-gray-900">NeoNova AI</h1>
-          <p className="text-gray-600 mt-2">Your intelligent assistant</p>
-        </div>
+    <div className="min-h-screen relative">
+      <AnimatedBackground />
+      
+      {/* Theme and Language Controls */}
+      <div className="absolute top-4 right-4 flex gap-2 z-20">
+        <LanguageSelector />
+        <ThemeToggle />
+      </div>
 
-        <Card className="shadow-xl border-0 animate-slide-up">
-          <CardHeader>
-            <CardTitle>{isLogin ? 'Welcome back' : 'Create account'}</CardTitle>
-            <CardDescription>
-              {isLogin 
-                ? 'Enter your credentials to access your account' 
-                : 'Sign up to start your AI journey'}
-            </CardDescription>
-          </CardHeader>
+      <div className="relative z-10 flex items-center justify-center min-h-screen p-4">
+        <div className="w-full max-w-md">
+          {/* Logo/Brand */}
+          <div className="text-center mb-8 animate-fade-in-down">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-600 to-secondary-600 mb-4 shadow-lg animate-bounce-in hover:scale-110 transition-transform duration-300">
+              <Sparkles className="w-8 h-8 text-white animate-pulse-slow" />
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white animate-fade-in-up">NeoNova AI</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-2 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+              {t('footer.poweredBy')}
+            </p>
+          </div>
+
+          <Card className="shadow-xl border-0 animate-scale-in backdrop-blur-sm bg-white/90 dark:bg-gray-800/90 hover:shadow-2xl transition-shadow duration-300 dark:border-gray-700">
+            <CardHeader>
+              <CardTitle>{isLogin ? t('auth.welcomeBack') : t('auth.createAccount')}</CardTitle>
+              <CardDescription>
+                {isLogin 
+                  ? t('auth.enterCredentials')
+                  : t('auth.signUpMessage')}
+              </CardDescription>
+            </CardHeader>
           
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Display Name Input (Register only) */}
               {!isLogin && (
-                <div className="space-y-2">
-                  <label htmlFor="displayName" className="text-sm font-medium text-gray-700">
-                    Name
+                <div className="space-y-2 animate-slide-in-left">
+                  <label htmlFor="displayName" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {t('auth.name')}
                   </label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <div className="relative group">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500 group-focus-within:text-primary-500 transition-colors" />
                     <Input
                       id="displayName"
                       type="text"
-                      placeholder="Your name"
+                      placeholder={t('auth.namePlaceholder')}
                       value={displayName}
                       onChange={(e) => setDisplayName(e.target.value)}
-                      className="pl-10"
+                      className="pl-10 transition-all duration-200 focus:scale-[1.02] dark:bg-gray-700 dark:text-white dark:border-gray-600"
                       disabled={isLoading}
                       autoComplete="name"
                     />
@@ -121,19 +138,19 @@ function LoginPageContent() {
               )}
 
               {/* Email Input */}
-              <div className="space-y-2">
-                <label htmlFor="email" className="text-sm font-medium text-gray-700">
-                  Email
+              <div className="space-y-2 animate-slide-in-left" style={{ animationDelay: !isLogin ? '0.1s' : '0s' }}>
+                <label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {t('auth.email')}
                 </label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <div className="relative group">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500 group-focus-within:text-primary-500 transition-colors" />
                   <Input
                     id="email"
                     type="email"
-                    placeholder="you@example.com"
+                    placeholder={t('auth.emailPlaceholder')}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 transition-all duration-200 focus:scale-[1.02] dark:bg-gray-700 dark:text-white dark:border-gray-600"
                     disabled={isLoading}
                     autoComplete="email"
                   />
@@ -141,19 +158,19 @@ function LoginPageContent() {
               </div>
 
               {/* Password Input */}
-              <div className="space-y-2">
-                <label htmlFor="password" className="text-sm font-medium text-gray-700">
-                  Password
+              <div className="space-y-2 animate-slide-in-left" style={{ animationDelay: !isLogin ? '0.2s' : '0.1s' }}>
+                <label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {t('auth.password')}
                 </label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <div className="relative group">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500 group-focus-within:text-primary-500 transition-colors" />
                   <Input
                     id="password"
                     type="password"
-                    placeholder="••••••••"
+                    placeholder={t('auth.passwordPlaceholder')}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 transition-all duration-200 focus:scale-[1.02] dark:bg-gray-700 dark:text-white dark:border-gray-600"
                     disabled={isLoading}
                     autoComplete={isLogin ? 'current-password' : 'new-password'}
                   />
@@ -162,9 +179,9 @@ function LoginPageContent() {
 
               {/* Error Message */}
               {error && (
-                <div className="flex items-center gap-2 p-3 rounded-lg bg-red-50 border border-red-200 animate-slide-down">
-                  <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
-                  <p className="text-sm text-red-600">{error}</p>
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 animate-shake">
+                  <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 animate-bounce-subtle" />
+                  <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
                 </div>
               )}
 
@@ -173,10 +190,11 @@ function LoginPageContent() {
                 type="submit"
                 variant="primary"
                 size="lg"
-                className="w-full"
+                className="w-full group relative overflow-hidden"
                 isLoading={isLoading}
               >
-                {isLogin ? 'Sign in' : 'Create account'}
+                <span className="relative z-10">{isLogin ? t('auth.login') : t('auth.register')}</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-primary-600 to-secondary-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </Button>
 
               {/* Debug: Manual navigation button */}
@@ -197,28 +215,29 @@ function LoginPageContent() {
             </form>
 
             {/* Toggle Login/Register */}
-            <div className="mt-6 text-center">
+            <div className="mt-6 text-center animate-fade-in">
               <button
                 type="button"
                 onClick={() => {
                   setIsLogin(!isLogin)
                   setError('')
                 }}
-                className="text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors"
+                className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium transition-all duration-200 hover:scale-105 inline-block"
                 disabled={isLoading}
               >
                 {isLogin 
-                  ? "Don't have an account? Sign up" 
-                  : 'Already have an account? Sign in'}
+                  ? t('auth.dontHaveAccount')
+                  : t('auth.alreadyHaveAccount')}
               </button>
             </div>
           </CardContent>
         </Card>
 
         {/* Footer */}
-        <p className="text-center text-sm text-gray-500 mt-8">
-          Powered by advanced AI technology
+        <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-8 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+          {t('footer.poweredBy')}
         </p>
+        </div>
       </div>
     </div>
   )
