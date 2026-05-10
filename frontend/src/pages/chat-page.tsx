@@ -9,11 +9,10 @@ import {
   useLogout,
 } from '@/hooks/use-api'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card } from '@/components/ui/card'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { LanguageSelector } from '@/components/ui/language-selector'
+import { AnimatedBackground } from '@/components/ui/animated-background'
 import { 
   MessageSquarePlus, 
   Send, 
@@ -23,13 +22,20 @@ import {
   User,
   Bot,
   AlertCircle,
+  Paperclip,
+  Code,
+  Mail,
+  Lightbulb,
+  FileText,
 } from 'lucide-react'
 import { cn, formatRelativeTime } from '@/lib/utils'
 import type { Message } from '@/lib/api-client'
 
 export function ChatPage() {
   return (
-    <div className="h-screen flex bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="h-screen flex bg-gray-950 text-gray-100">
+      <AnimatedBackground />
+      
       {/* Sidebar */}
       <Suspense fallback={<SidebarSkeleton />}>
         <Sidebar />
@@ -57,7 +63,7 @@ function Sidebar() {
 
   // Auto-select first conversation
   useEffect(() => {
-    if (conversations && conversations.length > 0 && !selectedId) {
+    if (conversations?.length && !selectedId) {
       setSelectedId(conversations[0].id)
     }
   }, [conversations, selectedId])
@@ -75,21 +81,34 @@ function Sidebar() {
     }
   }
 
+  // Group conversations by date
+  const groupedConversations = conversations?.reduce((acc, conv) => {
+    const date = new Date(conv.created_at)
+    const now = new Date()
+    const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24))
+    
+    let group = 'Older'
+    if (diffDays === 0) group = 'Today'
+    else if (diffDays === 1) group = 'Yesterday'
+    else if (diffDays <= 7) group = 'Previous 7 Days'
+    
+    if (!acc[group]) acc[group] = []
+    acc[group].push(conv)
+    return acc
+  }, {} as Record<string, typeof conversations>)
+
   return (
-    <aside className="w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col shadow-lg animate-slide-in-left">
+    <aside className="w-64 bg-gray-900/50 backdrop-blur-xl border-r border-gray-800/50 flex flex-col">
       {/* Header */}
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-primary-50 to-secondary-50 dark:from-gray-800 dark:to-gray-800">
-        <div className="flex items-center justify-between mb-4 animate-fade-in-down">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-600 to-secondary-600 flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-300 cursor-pointer">
-              <Sparkles className="w-5 h-5 text-white animate-pulse-slow" />
+      <div className="p-3 border-b border-gray-800/30">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center">
+              <Sparkles className="w-3.5 h-3.5 text-white" />
             </div>
-            <div>
-              <h2 className="font-semibold text-gray-900 dark:text-white">NeoNova AI</h2>
-              <p className="text-xs text-gray-500 dark:text-gray-400">{t('chat.conversations')}</p>
-            </div>
+            <span className="font-semibold text-sm text-gray-100">NeoNova AI</span>
           </div>
-          <div className="flex gap-1">
+          <div className="flex gap-0.5">
             <LanguageSelector />
             <ThemeToggle />
           </div>
@@ -98,88 +117,86 @@ function Sidebar() {
         <Button
           onClick={handleCreateConversation}
           variant="primary"
-          size="md"
-          className="w-full group relative overflow-hidden"
+          size="sm"
+          className="w-full justify-center gap-2 bg-white/5 hover:bg-white/10 text-gray-100 border border-white/10 hover:border-white/20 transition-all text-sm py-2"
           isLoading={createConversation.isPending}
         >
-          <MessageSquarePlus className="w-4 h-4 group-hover:rotate-90 transition-transform duration-300" />
+          <MessageSquarePlus className="w-4 h-4" />
           <span>{t('chat.newChat')}</span>
-          <div className="absolute inset-0 bg-gradient-to-r from-primary-700 to-secondary-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
         </Button>
       </div>
 
       {/* Conversations List */}
-      <div className="flex-1 overflow-y-auto p-2">
+      <div className="flex-1 overflow-y-auto px-2 py-2 space-y-4">
         {isLoading && (
           <div className="flex justify-center py-8">
-            <LoadingSpinner />
+            <LoadingSpinner size="sm" />
           </div>
         )}
 
         {error && (
-          <div className="p-4 text-center">
-            <AlertCircle className="w-8 h-8 text-red-500 dark:text-red-400 mx-auto mb-2" />
-            <p className="text-sm text-red-600 dark:text-red-400">{t('chat.failedToLoad')} conversations</p>
+          <div className="px-2 py-2 text-center">
+            <p className="text-xs text-red-400">{t('chat.failedToLoad')}</p>
           </div>
         )}
 
-        {conversations && conversations.length === 0 && (
-          <div className="p-4 text-center text-gray-500 dark:text-gray-400">
-            <p className="text-sm">{t('chat.noConversations')}</p>
-            <p className="text-xs mt-1">{t('chat.createToStart')}</p>
+        {conversations?.length === 0 && (
+          <div className="px-2 py-8 text-center">
+            <p className="text-xs text-gray-500">{t('chat.noConversations')}</p>
+            <p className="text-xs text-gray-600 mt-1">{t('chat.createToStart')}</p>
           </div>
         )}
 
-        <div className="space-y-1">
-          {conversations?.map((conv, index) => (
-            <div
-              key={conv.id}
-              className={cn(
-                'group flex items-center gap-2 p-3 rounded-lg cursor-pointer transition-all duration-300 animate-fade-in-up',
-                selectedId === conv.id
-                  ? 'bg-gradient-to-r from-primary-50 to-secondary-50 dark:from-primary-900/20 dark:to-secondary-900/20 border border-primary-200 dark:border-primary-700 shadow-sm scale-[1.02]'
-                  : 'hover:bg-gray-50 dark:hover:bg-gray-700 border border-transparent hover:scale-[1.01]'
-              )}
-              style={{ animationDelay: `${index * 0.05}s` }}
-              onClick={() => setSelectedId(conv.id)}
-            >
-              <div className="flex-1 min-w-0">
-                <p className={cn(
-                  'text-sm font-medium truncate transition-colors',
-                  selectedId === conv.id ? 'text-primary-900 dark:text-primary-300' : 'text-gray-900 dark:text-gray-100'
-                )}>
-                  {conv.title}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {formatRelativeTime(conv.updated_at)}
-                </p>
-              </div>
-              
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  handleDeleteConversation(conv.id)
-                }}
-                className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md hover:bg-red-50 text-gray-400 hover:text-red-600 transition-all duration-200 hover:scale-110 hover:rotate-12"
-                disabled={deleteConversation.isPending}
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
+        {groupedConversations && Object.entries(groupedConversations).map(([group, convs]) => (
+          <div key={group} className="space-y-0.5">
+            <div className="px-2 py-1">
+              <h3 className="text-[11px] font-medium text-gray-500 uppercase tracking-wider">{group}</h3>
             </div>
-          ))}
-        </div>
+            
+            {convs.map((conv) => (
+              <button
+                key={conv.id}
+                className={cn(
+                  'group relative flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer transition-all w-full text-left',
+                  selectedId === conv.id
+                    ? 'bg-white/10 text-gray-100'
+                    : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'
+                )}
+                onClick={() => setSelectedId(conv.id)}
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm truncate">
+                    {conv.title}
+                  </p>
+                </div>
+                
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleDeleteConversation(conv.id)
+                  }}
+                  className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-white/10 text-gray-500 hover:text-red-400 transition-all"
+                  disabled={deleteConversation.isPending}
+                  aria-label="Delete conversation"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              </button>
+            ))}
+          </div>
+        ))}
       </div>
 
       {/* Footer */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+      <div className="p-2 border-t border-gray-800/30">
         <Button
           onClick={logout}
           variant="ghost"
-          size="md"
-          className="w-full justify-start text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 group"
+          size="sm"
+          className="w-full justify-start gap-2 text-gray-400 hover:text-gray-200 hover:bg-white/5 text-sm py-2"
         >
-          <LogOut className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          {t('auth.logout')}
+          <LogOut className="w-3.5 h-3.5" />
+          <span>{t('auth.logout')}</span>
         </Button>
       </div>
     </aside>
@@ -196,22 +213,53 @@ function ChatArea() {
   const [selectedId, setSelectedId] = useState<string | null>(null)
 
   useEffect(() => {
-    if (conversations && conversations.length > 0 && !selectedId) {
+    if (conversations?.length && !selectedId) {
       setSelectedId(conversations[0].id)
     }
   }, [conversations, selectedId])
 
   if (!selectedId) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
-        <div className="text-center animate-fade-in">
-          <Sparkles className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4 animate-float" />
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2 animate-fade-in-up">
-            {t('chat.welcomeTitle')}
-          </h3>
-          <p className="text-gray-500 dark:text-gray-400 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-            {t('chat.welcomeMessage')}
-          </p>
+      <div className="flex-1 flex items-center justify-center">
+        <div className="max-w-2xl mx-auto px-6 text-center">
+          {/* Welcome Section */}
+          <div className="mb-12 animate-fade-in">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center mx-auto mb-6 animate-float">
+              <Sparkles className="w-8 h-8 text-white" />
+            </div>
+            <h1 className="text-3xl font-semibold text-gray-100 mb-3">
+              {t('chat.welcomeTitle')}
+            </h1>
+            <p className="text-gray-400 text-lg">
+              {t('chat.welcomeMessage')}
+            </p>
+          </div>
+
+          {/* Suggested Prompts */}
+          <div className="grid grid-cols-2 gap-3 max-w-xl mx-auto">
+            {[
+              { icon: Mail, text: t('chat.suggestedPrompts.writeEmail'), color: 'from-blue-500 to-cyan-500' },
+              { icon: Code, text: t('chat.suggestedPrompts.generateCode'), color: 'from-purple-500 to-pink-500' },
+              { icon: FileText, text: t('chat.suggestedPrompts.summarizeText'), color: 'from-green-500 to-emerald-500' },
+              { icon: Lightbulb, text: t('chat.suggestedPrompts.brainstormIdeas'), color: 'from-orange-500 to-yellow-500' },
+            ].map((prompt) => (
+              <button
+                key={prompt.text}
+                className="group p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 transition-all text-left animate-fade-in-up"
+                style={{ animationDelay: `${[Mail, Code, FileText, Lightbulb].indexOf(prompt.icon) * 0.1}s` }}
+              >
+                <div className={cn(
+                  'w-10 h-10 rounded-lg bg-gradient-to-br flex items-center justify-center mb-3 group-hover:scale-110 transition-transform',
+                  prompt.color
+                )}>
+                  <prompt.icon className="w-5 h-5 text-white" />
+                </div>
+                <p className="text-sm text-gray-300 group-hover:text-gray-100 transition-colors">
+                  {prompt.text}
+                </p>
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     )
@@ -229,7 +277,7 @@ function ChatArea() {
 // ============================================================================
 
 interface ChatMessagesProps {
-  conversationId: string
+  readonly conversationId: string
 }
 
 function ChatMessages({ conversationId }: ChatMessagesProps) {
@@ -238,11 +286,20 @@ function ChatMessages({ conversationId }: ChatMessagesProps) {
   const sendMessage = useSendMessage(conversationId)
   const [input, setInput] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   // Auto-scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+  // Auto-resize textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto'
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`
+    }
+  }, [input])
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -253,76 +310,102 @@ function ChatMessages({ conversationId }: ChatMessagesProps) {
     await sendMessage.mutateAsync({ content })
   }
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      handleSend(e)
+    }
+  }
+
   return (
-    <div className="flex-1 flex flex-col">
+    <div className="flex-1 flex flex-col relative">
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-6">
-        {isLoading && (
-          <div className="flex justify-center py-8">
-            <LoadingSpinner />
-          </div>
-        )}
-
-        {error && (
-          <div className="flex items-center justify-center gap-2 p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
-            <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
-            <p className="text-sm text-red-600 dark:text-red-400">{t('chat.failedToLoad')} messages</p>
-          </div>
-        )}
-
-        {messages && messages.length === 0 && (
-          <div className="text-center py-12">
-            <Bot className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-            <p className="text-gray-500 dark:text-gray-400">{t('chat.noMessages')}</p>
-          </div>
-        )}
-
-        {messages?.map((message, index) => (
-          <MessageBubble key={message.id} message={message} index={index} />
-        ))}
-
-        {sendMessage.isPending && (
-          <div className="flex items-start gap-3 animate-fade-in-up">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-600 to-secondary-600 flex items-center justify-center flex-shrink-0 animate-pulse-glow">
-              <Bot className="w-5 h-5 text-white" />
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-3xl mx-auto px-6 py-8 space-y-6">
+          {isLoading && (
+            <div className="flex justify-center py-12">
+              <LoadingSpinner />
             </div>
-            <Card className="flex-1 p-4 border-primary-200 dark:border-primary-700 bg-primary-50/50 dark:bg-primary-900/20 animate-pulse">
-              <div className="flex items-center gap-2">
-                <LoadingSpinner size="sm" />
-                <span className="text-sm text-gray-600 dark:text-gray-400 animate-typing">{t('chat.thinking')}</span>
-              </div>
-            </Card>
-          </div>
-        )}
+          )}
 
-        <div ref={messagesEndRef} />
+          {error && (
+            <div className="flex items-center justify-center gap-2 p-4 rounded-xl bg-red-500/10 border border-red-500/20">
+              <AlertCircle className="w-5 h-5 text-red-400" />
+              <p className="text-sm text-red-400">{t('chat.failedToLoad')} messages</p>
+            </div>
+          )}
+
+          {messages?.length === 0 && !isLoading && (
+            <div className="text-center py-16">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500/20 to-secondary-500/20 flex items-center justify-center mx-auto mb-4">
+                <Bot className="w-6 h-6 text-gray-400" />
+              </div>
+              <p className="text-gray-400">{t('chat.noMessages')}</p>
+            </div>
+          )}
+
+          {messages?.map((message, index) => (
+            <MessageBubble key={message.id} message={message} index={index} />
+          ))}
+
+          {sendMessage.isPending && (
+            <div className="flex items-start gap-4 animate-fade-in-up">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center flex-shrink-0">
+                <Bot className="w-4 h-4 text-white" />
+              </div>
+              <div className="flex-1 p-4 rounded-2xl bg-white/5 border border-white/10">
+                <div className="flex items-center gap-2">
+                  <LoadingSpinner size="sm" />
+                  <span className="text-sm text-gray-400">{t('chat.thinking')}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div ref={messagesEndRef} />
+        </div>
       </div>
 
-      {/* Input Area */}
-      <div className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 shadow-lg">
-        <form onSubmit={handleSend} className="max-w-4xl mx-auto">
-          <div className="flex gap-3">
-            <Input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder={t('chat.typeMessage')}
-              disabled={sendMessage.isPending}
-              className="flex-1 transition-all duration-200 focus:scale-[1.01] focus:shadow-lg dark:bg-gray-700 dark:text-white dark:border-gray-600"
-              autoFocus
-            />
-            <Button
-              type="submit"
-              variant="primary"
-              size="md"
-              disabled={!input.trim() || sendMessage.isPending}
-              isLoading={sendMessage.isPending}
-              className="group relative overflow-hidden hover:scale-105 transition-transform"
-            >
-              <Send className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-              <div className="absolute inset-0 bg-gradient-to-r from-primary-700 to-secondary-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            </Button>
-          </div>
-        </form>
+      {/* Input Area - Floating */}
+      <div className="sticky bottom-0 border-t border-white/5 bg-gray-950/80 backdrop-blur-xl">
+        <div className="max-w-3xl mx-auto px-6 py-4">
+          <form onSubmit={handleSend}>
+            <div className="relative flex items-end gap-2 p-3 rounded-2xl bg-white/5 border border-white/10 focus-within:border-white/20 focus-within:bg-white/[0.07] transition-all">
+              <button
+                type="button"
+                className="p-2 rounded-lg hover:bg-white/10 text-gray-400 hover:text-gray-300 transition-all flex-shrink-0"
+                aria-label="Attach file"
+              >
+                <Paperclip className="w-5 h-5" />
+              </button>
+              
+              <textarea
+                ref={textareaRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder={t('chat.typeMessage')}
+                disabled={sendMessage.isPending}
+                rows={1}
+                className="flex-1 bg-transparent text-gray-100 placeholder-gray-500 resize-none outline-none text-[15px] leading-6 max-h-[200px]"
+              />
+              
+              <button
+                type="submit"
+                disabled={!input.trim() || sendMessage.isPending}
+                className={cn(
+                  'p-2 rounded-lg transition-all flex-shrink-0',
+                  input.trim() && !sendMessage.isPending
+                    ? 'bg-gradient-to-br from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 text-white shadow-lg hover:shadow-xl hover:scale-105'
+                    : 'bg-white/5 text-gray-600 cursor-not-allowed'
+                )}
+                aria-label="Send message"
+              >
+                <Send className="w-5 h-5" />
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   )
@@ -333,8 +416,8 @@ function ChatMessages({ conversationId }: ChatMessagesProps) {
 // ============================================================================
 
 interface MessageBubbleProps {
-  message: Message
-  index?: number
+  readonly message: Message
+  readonly index?: number
 }
 
 function MessageBubble({ message, index = 0 }: MessageBubbleProps) {
@@ -343,45 +426,47 @@ function MessageBubble({ message, index = 0 }: MessageBubbleProps) {
   return (
     <div 
       className={cn(
-        'flex items-start gap-3 animate-fade-in-up',
+        'flex items-start gap-4 animate-fade-in-up',
         isUser && 'flex-row-reverse'
       )}
       style={{ animationDelay: `${index * 0.05}s` }}
     >
       {/* Avatar */}
       <div className={cn(
-        'w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-transform duration-300 hover:scale-110',
+        'w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0',
         isUser 
-          ? 'bg-gradient-to-br from-gray-200 to-gray-300 shadow-sm' 
-          : 'bg-gradient-to-br from-primary-600 to-secondary-600 shadow-lg animate-pulse-slow'
+          ? 'bg-gradient-to-br from-gray-700 to-gray-800' 
+          : 'bg-gradient-to-br from-primary-500 to-secondary-500'
       )}>
         {isUser ? (
-          <User className="w-5 h-5 text-gray-600" />
+          <User className="w-4 h-4 text-gray-300" />
         ) : (
-          <Bot className="w-5 h-5 text-white" />
+          <Bot className="w-4 h-4 text-white" />
         )}
       </div>
 
       {/* Message Content */}
-      <Card className={cn(
-        'flex-1 p-4 transition-all duration-300 hover:shadow-lg',
-        isUser 
-          ? 'bg-gradient-to-br from-primary-600 to-primary-700 text-white border-primary-600 dark:border-primary-500 hover:scale-[1.01]' 
-          : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-primary-200 dark:hover:border-primary-700 hover:scale-[1.01]'
+      <div className={cn(
+        'flex-1 max-w-[85%]',
+        isUser && 'flex flex-col items-end'
       )}>
-        <p className={cn(
-          'text-sm whitespace-pre-wrap leading-relaxed',
-          isUser ? 'text-white' : 'text-gray-900 dark:text-gray-100'
+        <div className={cn(
+          'inline-block p-4 rounded-2xl transition-all',
+          isUser 
+            ? 'bg-gradient-to-br from-primary-500 to-secondary-500 text-white rounded-tr-sm' 
+            : 'bg-white/5 border border-white/10 text-gray-100 rounded-tl-sm'
         )}>
-          {message.content}
-        </p>
+          <p className="text-[15px] whitespace-pre-wrap leading-7">
+            {message.content}
+          </p>
+        </div>
         <p className={cn(
-          'text-xs mt-2 flex items-center gap-1',
-          isUser ? 'text-primary-100' : 'text-gray-400 dark:text-gray-500'
+          'text-xs mt-1.5 px-1',
+          isUser ? 'text-gray-500' : 'text-gray-600'
         )}>
-          <span>{formatRelativeTime(message.created_at)}</span>
+          {formatRelativeTime(message.created_at)}
         </p>
-      </Card>
+      </div>
     </div>
   )
 }
@@ -392,14 +477,14 @@ function MessageBubble({ message, index = 0 }: MessageBubbleProps) {
 
 function SidebarSkeleton() {
   return (
-    <aside className="w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col">
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-        <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse mb-4" />
-        <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse" />
+    <aside className="w-64 bg-gray-900/50 backdrop-blur-xl border-r border-gray-800/50 flex flex-col">
+      <div className="p-3 border-b border-gray-800/30">
+        <div className="h-10 bg-white/5 rounded-lg animate-pulse mb-3" />
+        <div className="h-9 bg-white/5 rounded-lg animate-pulse" />
       </div>
       <div className="flex-1 p-2 space-y-2">
-        {[...Array(5)].map((_, i) => (
-          <div key={i} className="h-16 bg-gray-100 dark:bg-gray-700 rounded-lg animate-pulse" />
+        {Array.from({ length: 5 }, (_, i) => (
+          <div key={`skeleton-item-${i}`} className="h-10 bg-white/5 rounded-md animate-pulse" />
         ))}
       </div>
     </aside>

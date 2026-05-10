@@ -197,21 +197,6 @@ function LoginPageContent() {
                 <div className="absolute inset-0 bg-gradient-to-r from-primary-600 to-secondary-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </Button>
 
-              {/* Debug: Manual navigation button */}
-              {import.meta.env.DEV && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="w-full"
-                  onClick={() => {
-                    console.log('Manual navigation to /chat')
-                    window.location.replace('/chat')
-                  }}
-                >
-                  [Debug] Go to Chat
-                </Button>
-              )}
             </form>
 
             {/* Toggle Login/Register */}

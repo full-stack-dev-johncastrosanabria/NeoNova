@@ -50,6 +50,12 @@ export default {
     noMessages: 'No messages yet. Start the conversation!',
     failedToLoad: 'Failed to load',
     deleteConversation: 'Delete conversation',
+    suggestedPrompts: {
+      writeEmail: 'Write an email',
+      generateCode: 'Generate code',
+      summarizeText: 'Summarize text',
+      brainstormIdeas: 'Brainstorm ideas',
+    },
   },
   theme: {
     light: 'Light',

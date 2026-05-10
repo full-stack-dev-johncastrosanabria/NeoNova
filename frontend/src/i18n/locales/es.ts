@@ -50,6 +50,12 @@ export default {
     noMessages: 'Aún no hay mensajes. ¡Comienza la conversación!',
     failedToLoad: 'Error al cargar',
     deleteConversation: 'Eliminar conversación',
+    suggestedPrompts: {
+      writeEmail: 'Escribir un correo',
+      generateCode: 'Generar código',
+      summarizeText: 'Resumir texto',
+      brainstormIdeas: 'Lluvia de ideas',
+    },
   },
   theme: {
     light: 'Claro',
