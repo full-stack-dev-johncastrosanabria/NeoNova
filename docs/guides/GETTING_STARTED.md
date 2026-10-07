@@ -25,8 +25,8 @@ psql --version         # Should be 14+
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/yourusername/neonova.git
-cd neonova
+git clone https://github.com/full-stack-dev-johncastrosanabria/NeoNova.git
+cd NeoNova
 
 # 2. Copy environment template
 cp .env.docker.example .env
@@ -47,8 +47,8 @@ docker-compose up
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/yourusername/neonova.git
-cd neonova
+git clone https://github.com/full-stack-dev-johncastrosanabria/NeoNova.git
+cd NeoNova
 
 # 2. Run setup script
 ./scripts/setup-dev.sh
