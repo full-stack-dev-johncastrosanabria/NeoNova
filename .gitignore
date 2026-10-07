@@ -282,3 +282,6 @@ alembic/versions/*.py
 !alembic/versions/001_initial_schema.py
 
 .node_modules
+
+# Local OS and IDE state
+.vs/
